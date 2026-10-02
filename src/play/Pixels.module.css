@@ -1,0 +1,6 @@
+.pixels {
+  display: block;
+  height: auto;
+  image-rendering: pixelated;
+  pointer-events: none;
+}

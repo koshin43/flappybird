@@ -1,0 +1,33 @@
+:root {
+  --page: #1e1b26;
+  --text: #f4f0e6;
+  --outline: #543847;
+  --panel: #ded895;
+  --panel-edge: #d7a84c;
+  --button: #e86a17;
+  --flash: #ffffff;
+  --focus: #f8b030;
+  --notice: #fff4d0;
+  --notice-text: #543847;
+
+  --radius: 6px;
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --flash-ms: 200ms;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--page);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+#root { height: 100%; }
+
+button { font: inherit; color: inherit; cursor: pointer; }

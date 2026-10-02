@@ -105,7 +105,7 @@ Tests exist to catch bugs. A test earns its place only if it would fail on a pla
 
 - There are exactly two suites, both integration-level. The spec's Testing section lists the edge cases each suite must catch.
   - **Rules scenarios** (`game/game.test.ts`) call only the public `game/` API. Each starts from a hand-written world and a fixed generator state, runs a scripted sequence of ticks and flaps, then compares bird position and velocity, pipes, score and events. Edge cases sit on exact boundaries: grazing a pipe's corner, scoring and dying on the same tick, touching the ground, flapping at the ceiling.
-  - **App flows** (`app/App.test.tsx`) render the whole app with the real game and save code over jsdom's `localStorage`. They drive the frame clock by hand and play with keys and pointer presses, and assert only on what the player sees in the DOM and what gets saved. A flow sets up its starting situation by writing a crafted save before rendering.
+  - **App flows** (`app/App.test.tsx`) render the whole app with the real game and save code over jsdom's `localStorage`. They drive the frame clock by hand and play with keys and pointer presses, and assert only on what the player sees, in the DOM and in what the canvas was asked to draw, and what gets saved. A flow sets up its starting situation by writing a crafted save before rendering.
 - Prefer one table-driven test over several near-identical tests.
 - What not to test:
   - private helpers, constants, defaults, type shapes, or styles
@@ -114,7 +114,7 @@ Tests exist to catch bugs. A test earns its place only if it would fail on a pla
   - internals, call counts of our own code, or animation timing
 
   Delete any test whose cases another test already covers.
-- Do not mock our own modules. Stub only real boundaries: `requestAnimationFrame` and the clock, the canvas context, the sound and vibration module, `crypto.getRandomValues`, and page visibility.
+- Do not mock our own modules. Stub only real boundaries: `requestAnimationFrame` and the clock, the canvas context, the sound and vibration module, `crypto.getRandomValues`, `matchMedia`, and page visibility.
 - A bug fix starts with a failing scenario that reproduces the bug.
 - Coverage percentage is not a goal.
 - Tests are deterministic, offline, and hermetic. Clear `localStorage` before each test.

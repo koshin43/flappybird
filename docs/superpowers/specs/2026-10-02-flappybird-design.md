@@ -130,7 +130,7 @@ The app always opens on **Title** with a fresh run in the ready phase, which sup
 
 There is one game screen. These states are overlays on the canvas:
 
-1. **Title.** The "Flappy Bird" wordmark, the bird bobbing, the ground scrolling, a **Play** button and the feedback toggle (🔊/🔇). Space or Enter presses Play. If any saved data was replaced (9.2), a notice shows here until Play is pressed.
+1. **Title.** The "Flappy Bird" wordmark, the bird bobbing, the ground scrolling, a **Play** button and the feedback toggle (SOUND ON / SOUND OFF). Space or Enter presses Play. If any saved data was replaced (9.2), a notice shows here until Play is pressed.
 2. **Get Ready.** "Get Ready" and a tap hint, with the score showing 0. The bird bobs, the ground scrolls, no pipes are on screen yet. The first flap input starts the run and is also its first flap. Play keeps the Title's run, so its sky and bird carry over.
 3. **Playing.** Only the big score at the top. It stays through Dying and is hidden on Game Over, where the panel shows the score.
 4. **Dying.** On `hit`: a white flash fades out over 200 ms, the hit sound plays and the phone vibrates. On `fall`: the fall sound plays. The score stays visible. Input is ignored.
@@ -153,18 +153,18 @@ There is one game screen. These states are overlays on the canvas:
 
 ### 5.1 Pixel art
 
-All art is original, authored in this repository as text grids with palettes, and drawn at the world's 1:1 scale.
+All art is original and authored in code at half the world's resolution: one art pixel is 2×2 world pixels. The bird and the font are text grids with palettes; the sky, ground, pipes and medals are drawn from shapes. Sizes below are in world pixels.
 
 | Sprite | Size | Notes |
 |---|---|---|
 | Bird | 34×24 | Round body filling the hitbox circle, eye, beak, wing. Three wing frames (up, middle, down). One grid, three palettes: yellow, blue, red. |
-| Pipe | 52 wide | A body slice repeated vertically, and a 26 px tall lip at the gap end, both the full 52 px wide so the art matches the hitbox. Green with light and dark shades. The top pipe is the bottom pipe flipped. |
+| Pipe | 52 wide | A one-row body slice stretched vertically, and a 26 px tall lip at the gap end, both the full 52 px wide so the art matches the hitbox. Green with light and dark shades. The lip is symmetric, so the top pipe uses it unflipped. |
 | Sky | 288×400 | Day: light blue, white clouds, a pale green city skyline and bushes. Night: dark teal, a skyline with lit windows, a few stars. The sky does not scroll. |
-| Ground | 288×112 | A striped green top strip over sand. Its stripe pattern repeats, and it is drawn offset by the scrolled distance. |
-| Medals | 22×22 | Bronze, silver, gold, platinum. |
-| Pixel font | 5×7 glyphs | A–Z, 0–9 and the punctuation the screens use, drawn with a dark outline. Rendered at scale 1 for panel text, scale 2 for headings and the wordmark, and scale 3 for the big score. It is used for the wordmark, "Get Ready", "Game Over", NEW, Paused, the countdown and the scores. |
+| Ground | 312×112 | A striped green top strip over sand. Its stripes repeat every 24 px, and it is drawn offset by the scrolled distance modulo 24. |
+| Medals | 22×22 | Bronze, silver, gold, platinum. Shown at double size on the Game Over panel. |
+| Pixel font | 5×7 glyphs | Only the letters the screens use, 0–9 and space, on a 7 art pixel advance, with a dark outline. Every word on screen except the notices uses it, including button labels. Sizes in world pixels per art pixel: 2 for panel text and buttons, 3 for headings and the wordmark, 4 for the big score, 6 for the countdown. |
 
-Sprites are rasterised once at startup. The canvas draws them; overlays show them as `<img>` elements with alt text equal to the words or number they show.
+Sprites are rasterised once, on first use. The canvas draws them; overlays show them as `<img>` elements with alt text equal to the words or number they show.
 
 ### 5.2 Motion
 
@@ -202,10 +202,10 @@ Every sound is generated with Web Audio at runtime. There are no audio files.
 | `score` | bright two-note ding | — |
 | `hit` | dull thud | 40 ms |
 | `fall` | descending whistle | — |
-| Title → Get Ready, Game Over panel appearing | soft swoosh | — |
+| Entering Get Ready (Play, Play again), Game Over panel appearing (`over`) | soft swoosh | — |
 
 - The audio context is created on the first tap or key press.
-- With the toggle off (🔇), nothing plays and nothing vibrates.
+- With the toggle off (SOUND OFF), nothing plays and nothing vibrates.
 - Vibration is used where the device supports it. iPhones have none; that is accepted.
 
 ## 8. Data model
@@ -294,11 +294,11 @@ Each scenario starts from a hand-written run (or `newRun` with a fixed seed), ru
 
 ### 11.2 App flows (`app/`)
 
-The whole app renders with the real game and save code over jsdom's `localStorage`. Each flow starts from a crafted save, or none, drives frames by hand, plays with keys and pointer presses, then checks what the player sees and what is saved. Only these are stubbed: `requestAnimationFrame` and the clock, the canvas context, the sound and vibration module, `crypto.getRandomValues`, and page visibility.
+The whole app renders with the real game and save code over jsdom's `localStorage`. Each flow starts from a crafted save, or none, drives frames by hand, plays with keys and pointer presses, then checks what the player sees and what is saved. Only these are stubbed: `requestAnimationFrame` and the clock, the canvas context, the sound and vibration module, `crypto.getRandomValues`, `matchMedia`, and page visibility. The canvas stub records draw calls, so tests read the bird's height and the pipe gaps from what was drawn and fly by eye.
 
 1. **A whole run.** Title → Play → Get Ready showing 0. A key press starts the run, flaps carry it through a pipe gap (score 1), then the bird hits a pipe. Game Over shows score, medal slot and best. The best is saved and NEW shows only when the score beat the previous best.
 2. **Game Over input.** Play again ignores Space and clicks for 600 ms, then Space starts a new Get Ready. Menu returns to Title.
-3. **Pause.** Hiding the page mid-run shows Paused and frames advance nothing. A tap starts 3, 2, 1. Hiding during the countdown returns to Paused. After the countdown the run continues from the same tick, and the countdown tap did not flap.
+3. **Pause.** Hiding the page mid-run shows Paused and frames advance nothing. A tap starts 3, 2, 1. Hiding during the countdown returns to Paused. After the countdown the run continues from the same tick, and the countdown tap did not flap. A single stalled frame moves the run at most 100 ms.
 4. **Corrupt save table.** An invalid best, an invalid feedback, an unknown field, and unparseable JSON each show the notice and write the replaced save. A valid save shows no notice.
 5. **Feedback toggle.** Toggled off, it is saved, survives a remount, and a run plays no sound and no vibration.
 6. **Input edges.** Held-key repeats don't flap. Tapping Play doesn't flap. A failed best write shows "Couldn't save your best score."
