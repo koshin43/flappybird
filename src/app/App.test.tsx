@@ -106,6 +106,8 @@ const hide = (to: boolean) => {
   hidden = to;
   act(() => void document.dispatchEvent(new Event('visibilitychange')));
 };
+/** Focus leaves the window but the page stays visible, as when a phone opens its app switcher. */
+const blur = () => act(() => void window.dispatchEvent(new FocusEvent('blur')));
 const button = (name: string) => screen.getByRole('button', { name });
 const shows = (text: string) => screen.queryByRole('img', { name: text }) !== null;
 /** The pixel lettering inside an element, as text. */
@@ -288,13 +290,32 @@ describe('pause', () => {
     expect(scene().birdY).toBeGreaterThan(after.birdY);
   });
 
+  it('pauses on focus loss alone, mid-run and mid-countdown, before the bird can fall', () => {
+    startRun();
+    advance(500);
+    blur();
+    expect(shows('PAUSED')).toBe(true);
+    const drawn = framesDrawn;
+    advance(3000);
+    expect(framesDrawn).toBe(drawn);
+
+    tap();
+    advance(1000);
+    blur();
+    expect(shows('PAUSED')).toBe(true);
+    advance(3000);
+    expect(framesDrawn).toBe(drawn);
+  });
+
   it('does not pause the title or Get Ready, it just stops', () => {
     render(<App />);
     hide(true);
+    blur();
     expect(shows('FLAPPY BIRD')).toBe(true);
     hide(false);
     fireEvent.click(button('PLAY'));
     hide(true);
+    blur();
     expect(shows('GET READY')).toBe(true);
     hide(false);
     tap();

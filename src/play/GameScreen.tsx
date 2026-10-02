@@ -78,13 +78,20 @@ export function GameScreen() {
   }, [running, still]);
 
   useEffect(() => {
+    /** Leaving the app mid-run pauses it. Phones keep the page visible in the app switcher, so focus loss counts. */
+    const leave = () => {
+      if (live.current.phase === 'playing' || live.current.phase === 'dying') setOverlay('paused');
+    };
     const onVisibility = () => {
       setHidden(document.hidden);
-      const midRun = live.current.phase === 'playing' || live.current.phase === 'dying';
-      if (document.hidden && midRun) setOverlay((o) => (o === 'title' ? o : 'paused'));
+      if (document.hidden) leave();
     };
     document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
+    window.addEventListener('blur', leave);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('blur', leave);
+    };
   }, []);
 
   useEffect(() => {
