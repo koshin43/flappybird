@@ -90,7 +90,7 @@ Rules:
 - One `requestAnimationFrame` loop in `play/` drives the simulation with a fixed-timestep accumulator. The display refresh rate never changes the physics: a run plays identically at 60 Hz, 120 Hz and on a dropped frame. After a long gap (tab hidden, debugger) the loop discards the backlog instead of fast-forwarding.
 - The renderer reads game state and never changes it. It rounds positions to whole world pixels and does not interpolate between ticks. The bird's tilt, wing flaps and bob are presentation only.
 - The canvas is exactly the world's logical size, defined once, and CSS scales it to fit with `image-rendering: pixelated`.
-- When the page is hidden the loop stops. Leaving the app (hidden or unfocused) pauses the run as the spec defines.
+- When the page is hidden the loop stops. Leaving the app (hidden, unfocused, or a touch cancelled by the system) pauses the run as the spec defines.
 - Controls are exactly those the spec defines. Flaps register on `pointerdown` and `keydown`, not `click`, so input lands on the next tick. Key repeat never flaps. The page does not scroll, zoom, select text, or pull-to-refresh while playing.
 - Respect `prefers-reduced-motion` as the spec defines (for example, no screen shake or flash).
 

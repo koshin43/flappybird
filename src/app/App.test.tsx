@@ -108,6 +108,8 @@ const hide = (to: boolean) => {
 };
 /** Focus leaves the window but the page stays visible, as when a phone opens its app switcher. */
 const blur = () => act(() => void window.dispatchEvent(new FocusEvent('blur')));
+/** The system takes over a touch, as when iOS starts its swipe to Home. */
+const cancelTouch = () => fireEvent.pointerCancel(document.querySelector('canvas')!, { isPrimary: true });
 const button = (name: string) => screen.getByRole('button', { name });
 const shows = (text: string) => screen.queryByRole('img', { name: text }) !== null;
 /** The pixel lettering inside an element, as text. */
@@ -290,10 +292,13 @@ describe('pause', () => {
     expect(scene().birdY).toBeGreaterThan(after.birdY);
   });
 
-  it('pauses on focus loss alone, mid-run and mid-countdown, before the bird can fall', () => {
+  it.each([
+    ['focus loss', blur],
+    ['a touch the system takes over', cancelTouch],
+  ])('pauses on %s, mid-run and mid-countdown, before the bird can fall', (_, leave) => {
     startRun();
     advance(500);
-    blur();
+    leave();
     expect(shows('PAUSED')).toBe(true);
     const drawn = framesDrawn;
     advance(3000);
@@ -301,7 +306,7 @@ describe('pause', () => {
 
     tap();
     advance(1000);
-    blur();
+    leave();
     expect(shows('PAUSED')).toBe(true);
     advance(3000);
     expect(framesDrawn).toBe(drawn);
@@ -311,11 +316,13 @@ describe('pause', () => {
     render(<App />);
     hide(true);
     blur();
+    cancelTouch();
     expect(shows('FLAPPY BIRD')).toBe(true);
     hide(false);
     fireEvent.click(button('PLAY'));
     hide(true);
     blur();
+    cancelTouch();
     expect(shows('GET READY')).toBe(true);
     hide(false);
     tap();

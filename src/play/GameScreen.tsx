@@ -78,7 +78,10 @@ export function GameScreen() {
   }, [running, still]);
 
   useEffect(() => {
-    /** Leaving the app mid-run pauses it. Phones keep the page visible in the app switcher, so focus loss counts. */
+    /**
+     * Leaving the app mid-run pauses it. Phones keep the page running through the app switcher and the swipe to
+     * Home, so focus loss counts, and so does a cancelled touch: iOS cancels it as its Home swipe begins.
+     */
     const leave = () => {
       if (live.current.phase === 'playing' || live.current.phase === 'dying') setOverlay('paused');
     };
@@ -88,9 +91,11 @@ export function GameScreen() {
     };
     document.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('blur', leave);
+    window.addEventListener('pointercancel', leave);
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('blur', leave);
+      window.removeEventListener('pointercancel', leave);
     };
   }, []);
 

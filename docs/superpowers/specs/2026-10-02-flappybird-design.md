@@ -144,7 +144,7 @@ There is one game screen. These states are overlays on the canvas:
 ### 4.3 Hiding the app
 
 - When the page becomes hidden, the game loop stops.
-- Leaving the app means the page becoming hidden or the window losing focus. Phones keep a page visible in the app switcher and behind the notification shade, so focus loss is what catches those in time.
+- Leaving the app means the page becoming hidden, the window losing focus, or the system cancelling a touch (`pointercancel`). Phones keep a page running through the app switcher, the notification shade and the swipe to Home, and report hidden and focus loss only once those animations end. iOS cancels the touch as its Home and Control Centre swipes begin, about a second earlier. The playfield allows no browser gestures, so a cancelled touch always means the system took it.
 - If the app is left while the run is **playing** or **dying**, the screen becomes **Paused**: "Paused – tap to resume" over the frozen scene.
 - In Paused, a tap on the playfield or a flap key starts a countdown showing 3, 2, 1, each for one second. When it ends, the run continues from the same tick. The countdown tap is not a flap.
 - If the app is left during the countdown, the screen goes back to Paused.
@@ -299,7 +299,7 @@ The whole app renders with the real game and save code over jsdom's `localStorag
 
 1. **A whole run.** Title → Play → Get Ready showing 0. A key press starts the run, flaps carry it through a pipe gap (score 1), then the bird hits a pipe. Game Over shows score, medal slot and best. The best is saved and NEW shows only when the score beat the previous best.
 2. **Game Over input.** Play again ignores Space and clicks for 600 ms, then Space starts a new Get Ready. Menu returns to Title.
-3. **Pause.** Hiding the page mid-run shows Paused and frames advance nothing. Losing focus without hiding pauses too. A tap starts 3, 2, 1. Hiding during the countdown returns to Paused. After the countdown the run continues from the same tick, and the countdown tap did not flap. A single stalled frame moves the run at most 100 ms.
+3. **Pause.** Hiding the page mid-run shows Paused and frames advance nothing. Losing focus without hiding, and a cancelled touch, pause too. A tap starts 3, 2, 1. Hiding during the countdown returns to Paused. After the countdown the run continues from the same tick, and the countdown tap did not flap. A single stalled frame moves the run at most 100 ms.
 4. **Corrupt save table.** An invalid best, an invalid feedback, an unknown field, and unparseable JSON each show the notice and write the replaced save. A valid save shows no notice.
 5. **Feedback toggle.** Toggled off, it is saved, survives a remount, and a run plays no sound and no vibration.
 6. **Input edges.** Held-key repeats don't flap. Tapping Play doesn't flap. A failed best write shows "Couldn't save your best score."
